@@ -12,46 +12,73 @@ const notion = new NotionAPI({
 });
 
 // Helper function to get all page IDs from a collection
+// Refactored to handle new Notion data format with multiple fallback strategies.
 export default function getAllPageIds(
-  collectionQuery: Record<string, any>,
+  collectionQuery: Record<string, any> | undefined,
   collectionId: string | undefined,
-  collectionView: Record<string, any>,
+  collectionView: Record<string, any> | undefined,
   viewIds: string[] | undefined,
-) {
-  // Return empty array if any required parameters are missing
-  if (!collectionQuery || !collectionId || !viewIds || viewIds.length === 0) {
-    return [];
-  }
+): string[] {
+  const pageSet = new Set<string>();
 
   try {
-    // Safely access the collection data
-    const collectionData = collectionQuery[collectionId];
-    if (!collectionData) return [];
-
-    const viewId = viewIds[0];
-    if (!viewId) return [];
-
-    // Type assertion to avoid TypeScript error
-    const view = collectionData[viewId] as any;
-    const tableGroups = view.table_groups || view.list_groups;
-    if (!view || !tableGroups || !tableGroups.results) return [];
-
-    const groups = [];
-
-    for (const group of tableGroups.results) {
-      if (!group?.value?.value) continue;
-
-      const title = group.value.value.value || '';
-      const items = view[`results:text:${title}`]?.blockIds || [];
-
-      groups.push({ title, items });
+    // ── Strategy 1: read page_sort from collectionView[viewId].value.value (new format) ──
+    if (collectionView && viewIds && viewIds.length > 0) {
+      const targetViewId = viewIds[0]!;
+      const pageSort = (collectionView as any)?.[targetViewId]?.value?.value
+        ?.page_sort;
+      if (Array.isArray(pageSort) && pageSort.length > 0) {
+        pageSort.forEach((id: string) => pageSet.add(id));
+      }
     }
 
-    return groups;
+    // ── Strategy 2: iterate every view's page_sort as a fallback ──
+    if (pageSet.size === 0 && collectionView) {
+      Object.values(collectionView).forEach((viewEntry: any) => {
+        const pageSort = viewEntry?.value?.value?.page_sort;
+        if (Array.isArray(pageSort)) {
+          pageSort.forEach((id: string) => pageSet.add(id));
+        }
+      });
+    }
+
+    // ── Strategy 3: legacy collectionQuery support ──
+    if (pageSet.size === 0 && collectionQuery && collectionId) {
+      const viewQuery = (collectionQuery as any)?.[collectionId];
+      if (viewQuery) {
+        Object.values(viewQuery).forEach((viewData: any) => {
+          [
+            viewData?.collection_group_results?.blockIds,
+            viewData?.results?.blockIds,
+            viewData?.blockIds,
+          ].forEach((ids) => {
+            if (Array.isArray(ids))
+              ids.forEach((id: string) => pageSet.add(id));
+          });
+        });
+
+        // Also support grouped table/list views (table_groups / list_groups)
+        if (pageSet.size === 0 && viewIds && viewIds.length > 0) {
+          const view = viewQuery[viewIds[0]!] as any;
+          const tableGroups = view?.table_groups || view?.list_groups;
+          if (tableGroups?.results) {
+            for (const group of tableGroups.results) {
+              if (!group?.value?.value) continue;
+              const title = group.value.value.value || '';
+              const items: string[] =
+                view[`results:text:${title}`]?.blockIds || [];
+              items.forEach((id) => pageSet.add(id));
+            }
+          }
+        }
+      }
+    }
   } catch (error) {
     console.error('Error fetching page IDs:', error);
     return [];
   }
+
+  return [...pageSet];
 }
 
 // Helper function to get page properties
@@ -100,22 +127,42 @@ export interface PageData {
   items: Record<string, DatabaseItem[]>;
 }
 
+// Unwrap a record entry across the various Notion data formats:
+//   New:    { spaceId, value: { value: { id, ... }, role } }
+//   Mid:    { value: { id, ... }, role }
+//   Legacy: { value: { id, ... } }
+function unwrapEntry(entry: any): { value: any; role: string } | null {
+  if (!entry) return null;
+
+  // New double-nested format
+  if (entry?.value?.value?.id && entry?.value?.role !== undefined) {
+    return {
+      value: entry.value.value,
+      role: entry.value.role ?? 'reader',
+    };
+  }
+
+  // Mid/legacy format with direct value.id
+  if (entry?.value?.id) {
+    return {
+      value: entry.value,
+      role: entry.role ?? 'reader',
+    };
+  }
+
+  return null;
+}
+
 export function normalizeRecordMap(recordMap: ExtendedRecordMap): void {
   // Normalize blocks
   for (const blockId of Object.keys(recordMap.block)) {
     const entry = recordMap.block[blockId] as any;
-    if (
-      entry?.value &&
-      typeof entry.value === 'object' &&
-      entry.value.value &&
-      typeof entry.value.value === 'object' &&
-      entry.value.value.id
-    ) {
-      // Double-nested: flatten { value: { value: {...}, role }, spaceId } → { value: {...}, role }
-      recordMap.block[blockId] = {
-        value: entry.value.value,
-        role: entry.value.role ?? entry.role ?? 'reader',
-      } as any;
+    const unwrapped = unwrapEntry(entry);
+    if (unwrapped) {
+      // Strip crdt_* fields that react-notion-x cannot handle
+      delete unwrapped.value.crdt_data;
+      delete unwrapped.value.crdt_format_version;
+      recordMap.block[blockId] = unwrapped as any;
     }
   }
 
@@ -123,17 +170,9 @@ export function normalizeRecordMap(recordMap: ExtendedRecordMap): void {
   if (recordMap.collection) {
     for (const collectionId of Object.keys(recordMap.collection)) {
       const entry = recordMap.collection[collectionId] as any;
-      if (
-        entry?.value &&
-        typeof entry.value === 'object' &&
-        entry.value.value &&
-        typeof entry.value.value === 'object' &&
-        entry.value.value.id
-      ) {
-        recordMap.collection[collectionId] = {
-          value: entry.value.value,
-          role: entry.value.role ?? entry.role ?? 'reader',
-        } as any;
+      const unwrapped = unwrapEntry(entry);
+      if (unwrapped) {
+        recordMap.collection[collectionId] = unwrapped as any;
       }
     }
   }
@@ -176,7 +215,7 @@ const getPageDataInternal = async (): Promise<PageData> => {
     const description = rawMetadata?.format?.seo_description || '';
 
     // Get all page IDs from the collection
-    const pageGroups = getAllPageIds(
+    const pageIds = getAllPageIds(
       collectionQuery,
       collectionId || '',
       collectionView,
@@ -186,37 +225,30 @@ const getPageDataInternal = async (): Promise<PageData> => {
     // Process items by type
     const itemsByType: Record<string, DatabaseItem[]> = {};
 
-    // Process each group of pages
-    pageGroups
-      .filter((group: { items: string[] }) => group.items?.length > 0)
-      .forEach((group: { items: string[] }) => {
-        if (!group.items) return;
+    pageIds.forEach((id: string) => {
+      const blockItem = block[id];
+      if (!blockItem) return;
 
-        group.items.forEach((id: string) => {
-          const blockItem = block[id];
-          if (!blockItem) return;
+      const value = blockItem.value;
+      if (!value) return;
 
-          const value = blockItem.value;
-          if (!value) return;
+      const props = getPageProperties(
+        id,
+        value,
+        schema,
+        '',
+        collection?.format?.collection_page_properties,
+      );
+      if (!props) return;
 
-          const props = getPageProperties(
-            id,
-            value,
-            schema,
-            '',
-            collection?.format?.collection_page_properties,
-          );
-          if (!props) return;
+      const type = props.type || 'other';
 
-          const type = props.type || 'other';
+      if (!itemsByType[type]) {
+        itemsByType[type] = [];
+      }
 
-          if (!itemsByType[type]) {
-            itemsByType[type] = [];
-          }
-
-          itemsByType[type].push(props);
-        });
-      });
+      itemsByType[type].push(props);
+    });
 
     return {
       title,

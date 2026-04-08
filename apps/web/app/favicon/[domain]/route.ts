@@ -71,7 +71,6 @@ export async function GET(
   let url = `http://${asciiDomain}`;
   try {
     const data = await getFavicons({ url, headers });
-    console.debug('[DEBUG__[domain]/route.ts-data]', data);
     icons = data.icons;
   } catch (error) {
     console.error(error);
