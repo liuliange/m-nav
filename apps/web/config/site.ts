@@ -6,7 +6,8 @@ export const siteConfig = {
   links: {
     homepage: 'https://tehuituan.cn',
     twitter: 'https://tehuituan.cn',
-    github: 'https://tehuituan.cn'
+    github: 'https://tehuituan.cn',
+    weibo: 'https://weibo.com/你的微博ID'   // 新增这一行，请将链接换成你的真实微博地址
   }
 }
 
