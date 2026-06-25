@@ -17,3 +17,9 @@ export function SiteFooter() {
                 All rights reserved
               </a>
             </span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
