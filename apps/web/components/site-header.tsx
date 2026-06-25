@@ -4,7 +4,6 @@ import { siteConfig } from '@/config/site';
 import { MainNav } from '@/components/header/main-nav';
 import { ModeSwitcher } from '@/components/header/mode-switcher';
 import { Button } from '@m-nav/ui/components/button';
-import { Weibo } from 'lucide-react';
 import { Search } from './header/Search';
 
 export function SiteHeader({ title }: { title?: string }) {
@@ -23,7 +22,11 @@ export function SiteHeader({ title }: { title?: string }) {
                 className='h-8 w-8 px-0'
               >
                 <Link href={siteConfig.links.weibo} target='_blank' rel='noreferrer'>
-                  <Weibo className='size-4' />
+                  <img 
+                    src="/weibo.svg" 
+                    alt="微博" 
+                    className="size-4" 
+                  />
                   <span className='sr-only'>微博</span>
                 </Link>
               </Button>
