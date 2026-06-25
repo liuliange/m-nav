@@ -7,14 +7,14 @@ export function SiteFooter() {
         <div className="container py-4">
           <div className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left flex justify-between">
             <span>
-              2024 特价团. {' '}
+              2024 特价团{' '}
               <a
                 href={siteConfig.links.homepage}
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium underline underline-offset-4"
               >
-                All rights reserved.
+                All rights reserved
               </a>
               .
             </span>
@@ -28,7 +28,6 @@ export function SiteFooter() {
               >
                 特惠团
               </a>
-              .
             </span>
           </div>
         </div>
