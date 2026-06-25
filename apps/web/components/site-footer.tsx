@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="container py-4">
           <div className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left flex justify-between">
             <span>
-              2024 特价团{' '}
+              2024 特卖团{' '}
               <a
                 href={siteConfig.links.homepage}
                 target="_blank"
