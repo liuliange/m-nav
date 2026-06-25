@@ -1,12 +1,12 @@
 export const siteConfig = {
   name: '',
-  url: 'https://github.com/busyhe/m-nav',
+  url: 'https://temaituan.cn',
   ogImage: 'https://ui.shadcn.com/og.jpg',
   description: 'A navigation site powered by Notion databases',
   links: {
-    homepage: 'https://busyhe.com',
-    twitter: 'https://twitter.com/busyhe_',
-    github: 'https://github.com/busyhe'
+    homepage: 'https://tehuituan.cn',
+    twitter: 'https://tehuituan.cn',
+    github: 'https://tehuituan.cn'
   }
 }
 
