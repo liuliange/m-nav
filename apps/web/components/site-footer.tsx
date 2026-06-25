@@ -7,26 +7,26 @@ export function SiteFooter() {
         <div className="container py-4">
           <div className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left flex justify-between">
             <span>
-              Built by{' '}
+              2024 特价团. {' '}
               <a
                 href={siteConfig.links.homepage}
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium underline underline-offset-4"
               >
-                busyhe
+                All rights reserved.
               </a>
               .
             </span>
             <span>
-              The source code is available on{' '}
+              更多优惠信息请访问{' '}
               <a
                 href={siteConfig.url}
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium underline underline-offset-4"
               >
-                GitHub
+                特惠团
               </a>
               .
             </span>
