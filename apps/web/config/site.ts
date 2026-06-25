@@ -7,7 +7,7 @@ export const siteConfig = {
     homepage: 'https://tehuituan.cn',
     twitter: 'https://tehuituan.cn',
     github: 'https://tehuituan.cn',
-    weibo: 'https://weibo.com/你的微博ID'   // 新增这一行，请将链接换成你的真实微博地址
+    weibo: 'https://weibo.com/u/6275146509'   // 新增这一行，请将链接换成你的真实微博地址
   }
 }
 
