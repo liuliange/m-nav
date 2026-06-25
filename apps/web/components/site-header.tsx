@@ -4,7 +4,7 @@ import { siteConfig } from '@/config/site';
 import { MainNav } from '@/components/header/main-nav';
 import { ModeSwitcher } from '@/components/header/mode-switcher';
 import { Button } from '@m-nav/ui/components/button';
-import { Github } from 'lucide-react';
+import { Weibo } from 'lucide-react';
 import { Search } from './header/Search';
 
 export function SiteHeader({ title }: { title?: string }) {
@@ -22,9 +22,9 @@ export function SiteHeader({ title }: { title?: string }) {
                 size='icon'
                 className='h-8 w-8 px-0'
               >
-                <Link href={siteConfig.url} target='_blank' rel='noreferrer'>
-                  <Github className='size-4' />
-                  <span className='sr-only'>GitHub</span>
+                <Link href={siteConfig.links.weibo} target='_blank' rel='noreferrer'>
+                  <Weibo className='size-4' />
+                  <span className='sr-only'>微博</span>
                 </Link>
               </Button>
               <ModeSwitcher />
