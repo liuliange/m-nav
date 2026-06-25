@@ -11,7 +11,7 @@ export function Search() {
     <div className='relative flex items-center gap-2'>
       <Input 
         type='text' 
-        placeholder='Search' 
+        placeholder='搜索优惠券' 
         className='w-full pr-8' 
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
