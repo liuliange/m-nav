@@ -76,7 +76,7 @@ export function SiteContentClient({ siteData }: SiteContentClientProps) {
       {Object.keys(filteredData).length === 0 && searchQuery.trim() && (
         <div className='text-center py-8'>
           <p className='text-muted-foreground'>
-            没有找到与 &quot;{searchQuery}&quot; 相关的结果
+            没有找到与 &quot;{searchQuery}&quot; 相关的结果，添加客服微信535821377帮忙查询
           </p>
         </div>
       )}
