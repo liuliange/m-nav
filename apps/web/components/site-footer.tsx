@@ -16,22 +16,4 @@ export function SiteFooter() {
               >
                 All rights reserved
               </a>
-              .
             </span>
-            <span>
-              更多优惠信息请访问{' '}
-              <a
-                href={siteConfig.url}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium underline underline-offset-4"
-              >
-                特惠团
-              </a>
-            </span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  )
-}
